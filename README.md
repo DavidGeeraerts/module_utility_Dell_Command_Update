@@ -4,17 +4,31 @@ Wrapper module for [Dell Command Update](https://www.dell.com/support/kbdoc/en-u
 
 ## Features
 
+- Intelligent wrapper for installing and running Dell Command Update
 - Program will install Dell Command Update if not present.
 - Checks if system is Dell
 - Checks local network file share repository for package.
 - Uses `Wget` to download package.
 - Installs `Chocolatey` package manager if `Wget` not installed.
+- Uses `Winget` if `Chocolatey` isn't available
 - Checks if running with administrative privilege
 - Local log
 - Log shipping to log server
 
+## Usage
+
+The wrapper is meant to facilitate large scale deployment and management.
+Though the program can be run manually on individual machines, it's standard practice to:
+
+- Add modules to a playbook
+- Use a deployment tool such as [PsExec/PsExec64](https://docs.microsoft.com/en-us/sysinternals/downloads/psexec) for large scale deployment and management. 
 
 ## Configuration
+
+- Change `$DCU_PACKAGE` if it's a later package 
+- If there's a local software repository, configure: `$LOCAL_REPO` e.g. `SET $LOCAL_REPO=\\Server\Share`
+- If there's a log server on the network, configure: `$LOG_SHIPPING_LOCATION` e.g. `SET "$LOG_SHIPPING_LOCATION=\\Server\Share"`
+
 
 ::	**Latest URI**
 
@@ -55,6 +69,14 @@ Wrapper module for [Dell Command Update](https://www.dell.com/support/kbdoc/en-u
 
 
 ### Change Log
+
+#### Version 1.1.0
+
+- Improved logging
+- Added cleanup
+- Fixed winget
+
+
 
 #### Version 1.0.0
 

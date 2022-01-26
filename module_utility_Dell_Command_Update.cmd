@@ -27,8 +27,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.0.0
-SET $SCRIPT_BUILD=20220125
+SET $SCRIPT_VERSION=1.1.0
+SET $SCRIPT_BUILD=20220126
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -67,6 +67,11 @@ SET "$LOG_SHIPPING_LOCATION="
 ::		*******************
 ::###########################################################################::
 
+
+:: cleanup cache folder, and packages?
+::  0 = OFF (NO)
+::  1 = ON (YES)
+SET $CLEANUP=0
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::
@@ -129,6 +134,7 @@ SET "$LOG_SHIPPING_LOCATION="
 	ECHO %$ISO_DATE% %TIME% [INFO]	Script Version: %$SCRIPT_VERSION% >> "%$LOG_D%\%$LOG_FILE%"
 	ECHO %$ISO_DATE% %TIME% [INFO]	Computer: %COMPUTERNAME% >> "%$LOG_D%\%$LOG_FILE%"
 	ECHO %$ISO_DATE% %TIME% [INFO]	User: %USERNAME% >> "%$LOG_D%\%$LOG_FILE%"
+	echo %$ISO_DATE% %TIME% [INFO]	Log Directory: %$LOG_D% >> "%$LOG_D%\%$LOG_FILE%"
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :Dell-Check
@@ -165,6 +171,7 @@ SET "$LOG_SHIPPING_LOCATION="
 	REM Didn't seem to install correct version on x64
 	REM installed as legacy, but now seems to install correctly.
 	@powershell Write-Host  "Dell Command Update not installed!" -ForegroundColor Yellow
+	echo %$ISO_DATE% %TIME% [INFO]	Dell Command Update not installed! >> "%$LOG_D%\%$LOG_FILE%"
 	timeout 5
 	
 	CD /D %PUBLIC%\Downloads
@@ -182,21 +189,31 @@ SET "$LOG_SHIPPING_LOCATION="
 	IF EXIST "%$DCU_PACKAGE%" GoTo DCU-install
 :skipLocal
 	:: WGET returns 9009 for all ERRORLEVELS ;-(
-	wget --version 1> nul 2> nul || @powershell Write-Host "Wget is required to retrieve Dell Command Update package. Wget installation using Chocolatey package manager..." -ForegroundColor Yellow
+	IF EXIST "%ProgramFiles(x86)%\GnuWin32\bin" echo %PATH% | FIND /I "%ProgramFiles(x86)%\GnuWin32\bin" 1> nul 2> nul || set "PATH=%PATH%;%ProgramFiles(x86)%\GnuWin32\bin"
+	wget --version 1> "%$LOG_D%\cache\wget_version.txt" 2> nul || @powershell Write-Host "Wget is required to retrieve Dell Command Update package. Wget installation using Chocolatey package manager..." -ForegroundColor Yellow
 	IF NOT DEFINED ChocolateyInstall @powershell Write-Host "Installing Chocolatey package manager..." -ForegroundColor DarkYellow
-	IF NOT DEFINED ChocolateyInstall @powershell -NoProfile -ExecutionPolicy unrestricted -Command "(iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))) >$null 2>&1"
+	IF NOT DEFINED ChocolateyInstall @powershell -NoProfile -ExecutionPolicy unrestricted -Command "(iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))) >$null 2>&1" & (
+		echo %$ISO_DATE% %TIME% [INFO]	Installed Chocolatey package manager!  >> "%$LOG_D%\%$LOG_FILE%"
+		)
 	ECHO %PATH% | FIND /I "chocolatey\bin" 1> nul 2> nul || IF EXIST "%ALLUSERSPROFILE%\chocolatey\bin" SET PATH="%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
 	IF EXIST "%PROGRAMDATA%\chocolatey" CD /D "%PROGRAMDATA%\chocolatey"
-	choco --version 2> nul 1> nul && wget --version 1> nul 2> nul || choco upgrade wget /y
+	choco --version 2> nul 1> nul && wget --version 1> "%$LOG_D%\cache\wget_version.txt" 2> nul || (
+	echo %$ISO_DATE% %TIME% [INFO]	Installing wget to download Dell Command Update... >> "%$LOG_D%\%$LOG_FILE%"
+	choco upgrade wget /y
+	)
 	CD /D "%ProgramData%\chocolatey\bin"
-	wget --version 1> nul 2> nul && GoTo skipWINGET
+	wget --version 1> "%$LOG_D%\cache\wget_version.txt" 2> nul && GoTo skipWINGET
 	
 :WINGET
+	:: Use winget as a fallback if Chocolatey ins't available.
 	winget -v 2> nul || GoTo skipWINGET
-	winget search "wget" --accept-source-agreements > "%$LOG_D%\cache\winget_wget.txt"
-	for /f "skip=2 tokens=3 delims=: " %%P IN ("%$LOG_D%\cache\winget_wget.txt") Do Echo %%P> "%$LOG_D%\cache\winget_wget_ID.txt"
+	REM First search will produce verbage about acceopt source agreements
+	winget search "wget" --accept-source-agreements > "%$LOG_D%\cache\v_winget_wget.txt"
+	find /I "wget" "%$LOG_D%\cache\v_winget_wget.txt" > "%$LOG_D%\cache\winget_wget.txt"
+	for /f "skip=2 tokens=3 delims=: " %%P IN (%$LOG_D%\cache\winget_wget.txt) Do Echo %%P> "%$LOG_D%\cache\winget_wget_ID.txt"
 	set /P $WINGET_WGET_ID= < "%$LOG_D%\cache\winget_wget_ID.txt"
 	winget install "%$WINGET_WGET_ID%" --accept-source-agreements
+	IF EXIST "%ProgramFiles(x86)%\GnuWin32\bin" set "PATH=%PATH%;%ProgramFiles(x86)%\GnuWin32\bin" 
 	REM winget changes the color
 	color 03
 :skipWINGET
@@ -204,6 +221,8 @@ SET "$LOG_SHIPPING_LOCATION="
 	CD /D %PUBLIC%\Downloads
 	wget --version 1> nul 2> nul && (
 		wget "%$URI_PACKAGE%"
+		echo %$ISO_DATE% %TIME% [INFO]	Dell Command Updated downloaded from Dell website. >> "%$LOG_D%\%$LOG_FILE%"
+		echo %$ISO_DATE% %TIME% [INFO]	Package: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%"
 		GoTo skip_DCU-Get
 		)
 	:: When wget isn't installed to get the latest DCU package
@@ -221,6 +240,7 @@ SET "$LOG_SHIPPING_LOCATION="
 	@powershell Write-Host "Installing Dell Command Update..." -ForegroundColor White
 	IF EXIST "%$DCU_PACKAGE%" (%$DCU_PACKAGE% /s) ELSE (
 	GoTo Close)
+	echo %$ISO_DATE% %TIME% [INFO]	Installed: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%"
 :skip-DCU-install
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -279,7 +299,15 @@ SET "$LOG_SHIPPING_LOCATION="
 :skipSL
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+:Cleanup
+	IF %$CLEANUP% EQU 0 GoTo skipCleanup
+	IF EXIST %PUBLIC%\Downloads\%$DCU_PACKAGE% DEL /F /Q %PUBLIC%\Downloads\%$DCU_PACKAGE%
+	IF EXIST "%$LOG_D%\cache" RD /S /Q "%$LOG_D%\cache"
+:skipCleanup
+
+
 :End
+	echo.
 	@powershell Write-Host  "All Done!" -ForegroundColor Green
 	TIMEOUT 15
 	ENDLOCAL
