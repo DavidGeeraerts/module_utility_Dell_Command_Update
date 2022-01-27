@@ -25,7 +25,7 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.2.0
+SET $SCRIPT_VERSION=1.3.0
 SET $SCRIPT_BUILD=20220127
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
@@ -55,7 +55,7 @@ SET "$LOG_D=%Public%\Logs\%$SCRIPT_NAME%"
 SET "$LOG_FILE=%COMPUTERNAME%_%$SCRIPT_NAME%.log"
 :: Log Shipping
 ::	Advise network file share location
-SET "$LOG_SHIPPING_LOCATION="
+SET "$LOG_SHIPPING="
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -95,6 +95,7 @@ SET $CLEANUP=0
 	ECHO  ****************************************************************
 	ECHO.
 	ECHO Processing...
+	echo.
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :: Check Log access
@@ -103,26 +104,16 @@ SET $CLEANUP=0
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :: Powershell Check
-	echo.
-	IF DEFINED PSModulePath (SET $PS_STATUS=1) ELSE (SET $PS_STATUS=0)
+	REM Assume powershell is available now with Windows 10(+)
+	:: IF DEFINED PSModulePath (SET $PS_STATUS=1) ELSE (SET $PS_STATUS=0)
 
 :fISO8601
 	:: Function to ensure ISO 8601 Date format yyyy-mmm-dd
 	:: Easiest way to get ISO date
-	IF %$PS_STATUS% EQU 0 GoTo skipPS
+::	IF %$PS_STATUS% EQU 0 GoTo skipPS
 	@powershell Get-Date -format "yyyy-MM-dd" > "%$LOG_D%\cache\var_ISO8601_Date.txt"
 	SET /P $ISO_DATE= < "%$LOG_D%\cache\var_ISO8601_Date.txt"
-:skipPS
-
-:: Fallback if PowerShell not available
-:fmanualISO
-	:: Manually create the ISO 8601 date format
-	IF DEFINED $ISO_DATE GoTo skipfmiso
-	FOR /F "tokens=2 delims=/ " %%T IN ("%DATE%") DO SET $ISO_MONTH=%%T
-	FOR /F "tokens=3 delims=/ " %%T IN ("%DATE%") DO SET $ISO_DAY=%%T
-	FOR /F "tokens=4 delims=/ " %%T IN ("%DATE%") DO SET $ISO_YEAR=%%T
-	SET $ISO_DATE=%$ISO_YEAR%-%$ISO_MONTH%-%$ISO_DAY%
-:skipfmiso
+	IF NOT DEFINED $ISO_DATE SET $ISO_DATE=%DATE% 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -156,7 +147,7 @@ SET $CLEANUP=0
 	SET $ADMIN_STATUS=%ERRORLEVEL%
 	IF %$ADMIN_STATUS% EQU 0 ECHO %$ISO_DATE% %TIME% [DEBUG]	Running with administrative privilege. >> "%$LOG_D%\%$LOG_FILE%"
 	IF %$ADMIN_STATUS% NEQ 0 ECHO %$ISO_DATE% %TIME% [FATAL]	Not running with administrative privilege! >> "%$LOG_D%\%$LOG_FILE%"
-	IF %$ADMIN_STATUS% NEQ 0 IF %$PS_STATUS% EQU 1 @powershell Write-Host  "FATAL ERROR! Not running with administrative privilege!" -ForegroundColor DarkRed
+	IF %$ADMIN_STATUS% NEQ 0 @powershell Write-Host  "FATAL ERROR! Not running with administrative privilege!" -ForegroundColor DarkRed
 	IF %$ADMIN_STATUS% NEQ 0 timeout 30
 	IF %$ADMIN_STATUS% NEQ 0 GoTo Close
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -217,26 +208,27 @@ SET $CLEANUP=0
 :skipWINGET
 	
 	CD /D %PUBLIC%\Downloads
-	wget --version 1> nul 2> nul && (
-		CD /D "%$LOG_D%\cache"
-		if exist dell-command-update.html del /F /Q dell-command-update.html
-		wget "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html"
-		for /f "tokens=6 delims=^< " %%P IN ('findstr /C:"h3><strong>Dell Command | Update" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
-		SET /P $DCU_LATEST= < "%$LOG_D%\cache\DCU-Versions.txt"
-		echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
-		echo %$DCU_LATEST% | FINDSTR /R /C:"[0-9].[0-9].[0-9]" 2>nul || SET "$DCU_LATEST=%$DCU_LATEST%.0"
-		echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
-		CD /D %PUBLIC%\Downloads
-		SET $DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_%$DCU_LATEST%_A00.EXE
-		echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_PACKAGE: {%$DCU_PACKAGE%} >> "%$LOG_D%\%$LOG_FILE%"
-		SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"
-		echo %$ISO_DATE% %TIME% [DEBUG]	$URI_PACKAGE: {%$URI_PACKAGE%} >> "%$LOG_D%\%$LOG_FILE%"
-		wget "%$URI_PACKAGE%"
-		echo %$ISO_DATE% %TIME% [INFO]	Dell Command Updated downloaded from Dell website. >> "%$LOG_D%\%$LOG_FILE%"
-		echo %$ISO_DATE% %TIME% [INFO]	Package: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%" "%$LOG_D%\cache
-		GoTo skip_DCU-Get
-		)
+	wget --version 1> nul 2> nul || GoTo err-wget
+	CD /D "%$LOG_D%\cache"
+	if exist dell-command-update.html del /F /Q dell-command-update.html
+	wget "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html"
+	for /f "tokens=6 delims=^< " %%P IN ('findstr /C:"h3><strong>Dell Command | Update" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
+	SET /P $DCU_LATEST= < "%$LOG_D%\cache\DCU-Versions.txt"
+	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
+	echo %$DCU_LATEST% | FINDSTR /R /C:"[0-9].[0-9].[0-9]" 2>nul || SET "$DCU_LATEST=%$DCU_LATEST%.0"
+	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
+	CD /D %PUBLIC%\Downloads
+	SET $DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_%$DCU_LATEST%_A00.EXE
+	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_PACKAGE: {%$DCU_PACKAGE%} >> "%$LOG_D%\%$LOG_FILE%"
+	SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"
+	echo %$ISO_DATE% %TIME% [DEBUG]	$URI_PACKAGE: {%$URI_PACKAGE%} >> "%$LOG_D%\%$LOG_FILE%"
+	wget "%$URI_PACKAGE%"
+	echo %$ISO_DATE% %TIME% [INFO]	Dell Command Updated downloaded from Dell website. >> "%$LOG_D%\%$LOG_FILE%"
+	echo %$ISO_DATE% %TIME% [INFO]	Package: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%"
+	GoTo skip_DCU-Get
+
 	:: When wget isn't installed to get the latest DCU package
+:err-wget
 	@powershell Write-Host  "Dell Command Update not installed!" -ForegroundColor Red
 	@powershell Write-Host  "Feature to install not available!" -ForegroundColor Red
 	@powershell Write-Host  "Install Dell-Command-Update manually." -ForegroundColor Yellow
@@ -303,11 +295,11 @@ SET $CLEANUP=0
 
 :Ship-Log
 	:: Process log shipping
-	IF NOT DEFINED $LOG_SHIPPING_LOCATION GoTo skipSL
+	IF NOT DEFINED $LOG_SHIPPING GoTo skipSL
 	whoami /UPN 2> nul 1> nul || GoTo skipSL
-	IF NOT EXIST "%$LOG_SHIPPING_LOCATION%" MD "%$LOG_SHIPPING_LOCATION%" || GoTo skipSL
-	ROBOCOPY "%$LOG_D%" "%$LOG_SHIPPING_LOCATION%" %$LOG_FILE% /R:2 /W:30 /NDL /NFL /NP /LOG+:"%$LOG_D%\%$SCRIPT_NAME%_%COMPUTERNAME%_Shipping.log"
-	IF %$PS_STATUS% EQU 1 @powershell Write-Host  "Log shipped!" -ForegroundColor Cyan
+	IF NOT EXIST "%$LOG_SHIPPING%" MD "%$LOG_SHIPPING%" || GoTo skipSL
+	ROBOCOPY "%$LOG_D%" "%$LOG_SHIPPING%" %$LOG_FILE% /R:2 /W:30 /NDL /NFL /NP /LOG+:"%$LOG_D%\%$SCRIPT_NAME%_%COMPUTERNAME%_Shipping.log"
+	@powershell Write-Host  "Log shipped!" -ForegroundColor Cyan
 :skipSL
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 

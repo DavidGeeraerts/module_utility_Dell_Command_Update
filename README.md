@@ -28,7 +28,7 @@ Though the program can be run manually on individual machines, it's standard pra
 
 - :gift: Change `$DCU_PACKAGE` to latest package 
 - If there's a local software repository, configure: `$LOCAL_REPO` e.g. `SET $LOCAL_REPO=\\Server\Share`
-- :satellite: If there's a log server on the network, configure: `$LOG_SHIPPING_LOCATION` e.g. `SET "$LOG_SHIPPING_LOCATION=\\Server\Share"`
+- :satellite: If there's a log server on the network, configure: `$LOG_SHIPPING` e.g. `SET "$LOG_SHIPPING=\\Server\Share"`
 
 
 ::	:new: **Latest URI**
@@ -61,7 +61,7 @@ Though the program can be run manually on individual machines, it's standard pra
 
 ::	\\\Server\Share
 
-`SET "$LOG_SHIPPING_LOCATION="`
+`SET "$LOG_SHIPPING="`
 
 
 ### :calendar: ToDo
@@ -69,21 +69,6 @@ Though the program can be run manually on individual machines, it's standard pra
 - ChangeLog
 - Provide configuration for scheduled task
 
+### :notebook: 
+[Change Log](./ChangeLog.md)
 
-### :notebook: Change Log
-
-#### :new: Version 1.2.0
-
-
-
-
-#### Version 1.1.0
-
-- Improved logging
-- Added cleanup
-- Fixed winget
-
-
-#### Version 1.0.0
-
-- First release
