@@ -12,8 +12,6 @@
 
 :: Dell Command Update
 ::	https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update
-::	Latest URI
-::	https://dl.dell.com/FOLDER07870027M/1/Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_4.4.0_A00.EXE
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ::::::::::::::::::::::::::::::::::
@@ -27,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.1.0
-SET $SCRIPT_BUILD=20220126
+SET $SCRIPT_VERSION=1.2.0
+SET $SCRIPT_BUILD=20220127
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -41,7 +39,7 @@ color 03
 :: Declare Global variables
 ::###########################################################################::
 
-::	Latest URI
+::	Last known package URI
 SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_4.4.0_A00.EXE"
 SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"
 
@@ -220,9 +218,22 @@ SET $CLEANUP=0
 	
 	CD /D %PUBLIC%\Downloads
 	wget --version 1> nul 2> nul && (
+		CD /D "%$LOG_D%\cache"
+		if exist dell-command-update.html del /F /Q dell-command-update.html
+		wget "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html"
+		for /f "tokens=6 delims=^< " %%P IN ('findstr /C:"h3><strong>Dell Command | Update" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
+		SET /P $DCU_LATEST= < "%$LOG_D%\cache\DCU-Versions.txt"
+		echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
+		echo %$DCU_LATEST% | FINDSTR /R /C:"[0-9].[0-9].[0-9]" 2>nul || SET "$DCU_LATEST=%$DCU_LATEST%.0"
+		echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
+		CD /D %PUBLIC%\Downloads
+		SET $DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_%$DCU_LATEST%_A00.EXE
+		echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_PACKAGE: {%$DCU_PACKAGE%} >> "%$LOG_D%\%$LOG_FILE%"
+		SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"
+		echo %$ISO_DATE% %TIME% [DEBUG]	$URI_PACKAGE: {%$URI_PACKAGE%} >> "%$LOG_D%\%$LOG_FILE%"
 		wget "%$URI_PACKAGE%"
 		echo %$ISO_DATE% %TIME% [INFO]	Dell Command Updated downloaded from Dell website. >> "%$LOG_D%\%$LOG_FILE%"
-		echo %$ISO_DATE% %TIME% [INFO]	Package: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%"
+		echo %$ISO_DATE% %TIME% [INFO]	Package: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%" "%$LOG_D%\cache
 		GoTo skip_DCU-Get
 		)
 	:: When wget isn't installed to get the latest DCU package
@@ -255,6 +266,7 @@ SET $CLEANUP=0
 	GoTo Close
 	)
 	dcu-cli.exe /version >> "%$LOG_D%\%$LOG_FILE%"
+	dcu-cli.exe /version
 	echo.
 
 :DCU-Scan

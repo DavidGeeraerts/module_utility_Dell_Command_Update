@@ -2,12 +2,13 @@
 
 Wrapper module for [Dell Command Update](https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update).
 
-## Features
+## :ferris_wheel: Features
 
 - Intelligent wrapper for installing and running Dell Command Update
 - Program will install Dell Command Update if not present.
-- Checks if system is Dell
 - Checks local network file share repository for package.
+- If fetching from Dell website, parses for the latest version.
+- Checks if system is Dell
 - Uses `Wget` to download package.
 - Installs `Chocolatey` package manager if `Wget` not installed.
 - Uses `Winget` if `Chocolatey` isn't available
@@ -23,18 +24,18 @@ Though the program can be run manually on individual machines, it's standard pra
 - Add modules to a playbook
 - Use a deployment tool such as [PsExec/PsExec64](https://docs.microsoft.com/en-us/sysinternals/downloads/psexec) for large scale deployment and management. 
 
-## Configuration
+## :wrench: Configuration
 
-- Change `$DCU_PACKAGE` if it's a later package 
+- :gift: Change `$DCU_PACKAGE` to latest package 
 - If there's a local software repository, configure: `$LOCAL_REPO` e.g. `SET $LOCAL_REPO=\\Server\Share`
-- If there's a log server on the network, configure: `$LOG_SHIPPING_LOCATION` e.g. `SET "$LOG_SHIPPING_LOCATION=\\Server\Share"`
+- :satellite: If there's a log server on the network, configure: `$LOG_SHIPPING_LOCATION` e.g. `SET "$LOG_SHIPPING_LOCATION=\\Server\Share"`
 
 
-::	**Latest URI**
+::	:new: **Latest URI**
 
 `SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_4.4.0_A00.EXE"`
 
-`SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"`
+:link: `SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"`
 
 :: **Local Network Repository**
 
@@ -63,19 +64,24 @@ Though the program can be run manually on individual machines, it's standard pra
 `SET "$LOG_SHIPPING_LOCATION="`
 
 
-### ToDo
+### :calendar: ToDo
 
+- ChangeLog
 - Provide configuration for scheduled task
 
 
-### Change Log
+### :notebook: Change Log
+
+#### :new: Version 1.2.0
+
+
+
 
 #### Version 1.1.0
 
 - Improved logging
 - Added cleanup
 - Fixed winget
-
 
 
 #### Version 1.0.0
