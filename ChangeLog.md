@@ -16,9 +16,18 @@
 [//]: # (#### Security)
 [//]: # (#### Deprecated)
 
+
 ---
 
-:new:
+
+###  Version 1.4.0 :new:
+
+#### Added
+- Check if local repo is empty go fetch from website
+
+
+---
+
 
 ###  Version 1.3.0
 
@@ -31,9 +40,6 @@
 
 #### Removed
 - Poweshell check
-
----
-
 
 
 

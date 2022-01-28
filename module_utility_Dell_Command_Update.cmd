@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.3.0
-SET $SCRIPT_BUILD=20220127
+SET $SCRIPT_VERSION=1.4.0
+SET $SCRIPT_BUILD=20220128
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -171,6 +171,8 @@ SET $CLEANUP=0
 	:: Check local repository if configured
 	IF DEFINED $LOCAL_REPO (
 		IF EXIST %$LOCAL_REPO% dir /B /A:-D /O:-D "%$LOCAL_REPO%"> "%$LOG_D%\cache\local_DCU_package.txt"
+		REM if the directory is empty dir will pass the file output name.
+		FIND /I "local_DCU_package.txt" "%$LOG_D%\cache\local_DCU_package.txt" 1> nul 2> nul && GoTo skipLocal
 		SET /P $DCU_PACKAGE= < "%$LOG_D%\cache\local_DCU_package.txt"
 		@powershell Write-Host "Fetching from local repository..." -ForegroundColor White
 		ROBOCOPY "%$LOCAL_REPO%" "%PUBLIC%\Downloads" %$DCU_PACKAGE% /R:1 /W:5
