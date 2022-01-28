@@ -20,13 +20,22 @@
 ---
 
 
-###  Version 1.4.0 :new:
+###  Version 1.4.1 :new:
+
+#### Added
+- build variable
+- Log info output
+- remove existing DCU logs before running DCU
+
+
+---
+
+
+###  Version 1.4.0
 
 #### Added
 - Check if local repo is empty go fetch from website
 
-
----
 
 
 ###  Version 1.3.0

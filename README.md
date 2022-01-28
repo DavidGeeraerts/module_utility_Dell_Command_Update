@@ -22,7 +22,15 @@ The wrapper is meant to facilitate large scale deployment and management.
 Though the program can be run manually on individual machines, it's standard practice to:
 
 - Add modules to a playbook
-- Use a deployment tool such as [PsExec/PsExec64](https://docs.microsoft.com/en-us/sysinternals/downloads/psexec) for large scale deployment and management. 
+- Use a deployment tool such as [PsExec/PsExec64](https://docs.microsoft.com/en-us/sysinternals/downloads/psexec) for large scale deployment and management.
+
+:warning: ***if using `PsExec` for large scale management, don't use `-e` switch!***
+
+`-e` Can cause issues if a program is using user variables such as `%temp%`.
+Since Dell-Command-Update using it's `-outputlog=` doesn't like the log path, it's using the `%TEMP%` variable [-outputlog="%temp%\DCU_SCAN.log"], which is a user variable (in this context).
+
+Use the following `PsExec` switch `SET "$SWITCH=-h -i -d -c -f -n 10"`
+
 
 ## :wrench: Configuration
 

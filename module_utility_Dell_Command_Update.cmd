@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.4.0
-SET $SCRIPT_BUILD=20220128
+SET $SCRIPT_VERSION=1.4.1
+SET $SCRIPT_BUILD=20220128 0845
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -46,7 +46,6 @@ SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"
 :: Local Network Repository
 ::	\\Server\Share
 SET $LOCAL_REPO=
-
 :: Log settings
 ::	Advise local storage for logging.
 ::	Log Directory
@@ -121,9 +120,12 @@ SET $CLEANUP=0
 	ECHO %$ISO_DATE% %TIME% [INFO]	START... >> "%$LOG_D%\%$LOG_FILE%"
 	ECHO %$ISO_DATE% %TIME% [INFO]	Script: %$SCRIPT_NAME% >> "%$LOG_D%\%$LOG_FILE%"
 	ECHO %$ISO_DATE% %TIME% [INFO]	Script Version: %$SCRIPT_VERSION% >> "%$LOG_D%\%$LOG_FILE%"
+	ECHO %$ISO_DATE% %TIME% [INFO]	Script Build: %$SCRIPT_BUILD% >> "%$LOG_D%\%$LOG_FILE%"	
 	ECHO %$ISO_DATE% %TIME% [INFO]	Computer: %COMPUTERNAME% >> "%$LOG_D%\%$LOG_FILE%"
 	ECHO %$ISO_DATE% %TIME% [INFO]	User: %USERNAME% >> "%$LOG_D%\%$LOG_FILE%"
 	echo %$ISO_DATE% %TIME% [INFO]	Log Directory: %$LOG_D% >> "%$LOG_D%\%$LOG_FILE%"
+	echo %$ISO_DATE% %TIME% [INFO]	Local repository: %$LOCAL_REPO% >> "%$LOG_D%\%$LOG_FILE%"
+	echo %$ISO_DATE% %TIME% [INFO]	Log shipping: %$LOG_SHIPPING% >> "%$LOG_D%\%$LOG_FILE%"
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :Dell-Check
@@ -265,21 +267,24 @@ SET $CLEANUP=0
 
 :DCU-Scan
 	rem -outputlog= doesn't work with %$LOG_D%, using %TEMP%
+	if exist "%temp%\DCU_SCAN.log" DEL /F /Q "%temp%\DCU_SCAN.log"
 	dcu-cli.exe /scan -outputlog="%temp%\DCU_SCAN.log"
 	echo.
 	echo Scan completed.
 	type "%temp%\DCU_SCAN.log" >> "%$LOG_D%\%$LOG_FILE%"
 	find /I "Number of applicable" "%temp%\DCU_SCAN.log"> "%$LOG_D%\cache\DCU_Scan_Updates.txt"
-	
 	for /f "skip=2 tokens=5 delims=:" %%P IN (%$LOG_D%\cache\DCU_Scan_Updates.txt) DO ECHO %%P> "%$LOG_D%\cache\DCU_Updates.txt"
 	:: remove space
 	for /f "tokens=1 delims= " %%P IN (%$LOG_D%\cache\DCU_Updates.txt) DO ECHO %%P> "%$LOG_D%\cache\DCU_Updates.txt"
 	SET /P $DCU_UPDATES= < "%$LOG_D%\cache\DCU_Updates.txt"
+	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_UPDATES: {%$DCU_UPDATES%} >> "%$LOG_D%\%$LOG_FILE%"
+	if not defined $DCU_UPDATES GoTo DCU-Update
 	IF %$DCU_UPDATES% EQU 0 GoTo Close
 
 
 :DCU-Update
 	rem -outputlog= doesn't work with %$LOG_D%, using %TEMP%
+	if exist "%TEMP%\DCU_UPDATE.log" DEL /F /Q "%TEMP%\DCU_UPDATE.log"
 	dcu-cli.exe /applyupdates -reboot=enable -outputlog="%TEMP%\DCU_UPDATE.log"
 	echo.
 	type "%TEMP%\DCU_UPDATE.log" >> "%$LOG_D%\%$LOG_FILE%"
