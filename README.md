@@ -1,4 +1,6 @@
-# module_utility_Dell_Command_Updater
+![License](https://img.shields.io/github/license/DavidGeeraerts/module_utility_Dell_Command_Update) ![Github latest release](https://img.shields.io/github/v/release/DavidGeeraerts/module_utility_Dell_Command_Update) ![Platform](https://img.shields.io/badge/platform-win11%20%7C%20win10-lightgrey)
+
+# module_utility_Dell_Command_Update
 
 Wrapper module for [Dell Command Update](https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update).
 
@@ -27,7 +29,7 @@ Though the program can be run manually on individual machines, it's standard pra
 :warning: ***if using `PsExec` for large scale management, don't use `-e` switch!***
 
 `-e` Can cause issues if a program is using user variables such as `%temp%`.
-Since Dell-Command-Update using it's `-outputlog=` doesn't like the log path, it's using the `%TEMP%` variable [-outputlog="%temp%\DCU_SCAN.log"], which is a user variable (in this context).
+Since Dell-Command-Update using it's `-outputlog=` doesn't like the log path, it's using the `%TEMP%` variable [`-outputlog="%temp%\DCU_SCAN.log"`], which is a user variable (in this context).
 
 Use the following `PsExec` switch `SET "$SWITCH=-h -i -d -c -f -n 10"`
 
@@ -41,9 +43,9 @@ Use the following `PsExec` switch `SET "$SWITCH=-h -i -d -c -f -n 10"`
 
 ::	:new: **Latest URI**
 
-`SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_4.4.0_A00.EXE"`
+`SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_601KT_WIN_4.5.0_A00_01.EXE"`
 
-:link: `SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"`
+:link: `SET "$URI_PACKAGE=https://dl.dell.com/FOLDER08334704M/2/%$DCU_PACKAGE%"`
 
 :: **Local Network Repository**
 
@@ -74,9 +76,9 @@ Use the following `PsExec` switch `SET "$SWITCH=-h -i -d -c -f -n 10"`
 
 ### :calendar: ToDo
 
-- ChangeLog
-- Provide configuration for scheduled task
+- :white_check_mark: ChangeLog
+- :black_square_button: Provide configuration for scheduled task
 
-### :notebook: 
-[Change Log](./ChangeLog.md)
+### :notebook: [Change Log](./ChangeLog.md)
+
 

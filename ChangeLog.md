@@ -19,6 +19,16 @@
 
 ---
 
+###  Version 1.4.2
+
+#### Changed
+- Latest package
+
+#### Fixed
+- Parsing html page for latest package
+
+---
+
 
 ###  Version 1.4.1 :new:
 
@@ -26,9 +36,6 @@
 - build variable
 - Log info output
 - remove existing DCU logs before running DCU
-
-
----
 
 
 ###  Version 1.4.0

@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.4.1
-SET $SCRIPT_BUILD=20220128 0845
+SET $SCRIPT_VERSION=1.4.2
+SET $SCRIPT_BUILD=20220519 1230
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,12 +40,12 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_4.4.0_A00.EXE"
-SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"
+SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_601KT_WIN_4.5.0_A00_01.EXE"
+SET "$URI_PACKAGE=https://dl.dell.com/FOLDER08334704M/2/%$DCU_PACKAGE%"
 
 :: Local Network Repository
 ::	\\Server\Share
-SET $LOCAL_REPO=
+SET $LOCAL_REPO=\\SC-Vanadium\Deploy\Dell\Dell_Command_Update
 :: Log settings
 ::	Advise local storage for logging.
 ::	Log Directory
@@ -54,7 +54,7 @@ SET "$LOG_D=%Public%\Logs\%$SCRIPT_NAME%"
 SET "$LOG_FILE=%COMPUTERNAME%_%$SCRIPT_NAME%.log"
 :: Log Shipping
 ::	Advise network file share location
-SET "$LOG_SHIPPING="
+SET "$LOG_SHIPPING=\\SC-Vanadium\Logs\Dell"
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -216,7 +216,7 @@ SET $CLEANUP=0
 	CD /D "%$LOG_D%\cache"
 	if exist dell-command-update.html del /F /Q dell-command-update.html
 	wget "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html"
-	for /f "tokens=6 delims=^< " %%P IN ('findstr /C:"h3><strong>Dell Command | Update" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
+	for /f "tokens=5 delims=^< " %%P IN ('findstr /C:"New features in version" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
 	SET /P $DCU_LATEST= < "%$LOG_D%\cache\DCU-Versions.txt"
 	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
 	echo %$DCU_LATEST% | FINDSTR /R /C:"[0-9].[0-9].[0-9]" 2>nul || SET "$DCU_LATEST=%$DCU_LATEST%.0"
