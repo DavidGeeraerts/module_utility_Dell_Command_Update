@@ -19,6 +19,15 @@
 
 ---
 
+###  Version 1.5.0
+#### Added
+- Automatic parsing (regexp) of webpage to find website for latest package
+- Automatic parsing (regexp) of latest package website to get package URI
+
+
+---
+
+
 ###  Version 1.4.2
 
 #### Changed
@@ -26,8 +35,6 @@
 
 #### Fixed
 - Parsing html page for latest package
-
----
 
 
 ###  Version 1.4.1 :new:

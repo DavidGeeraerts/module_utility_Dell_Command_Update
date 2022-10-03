@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.4.2
-SET $SCRIPT_BUILD=20220519 1230
+SET $SCRIPT_VERSION=1.5.0
+SET $SCRIPT_BUILD=20221003 0945
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,7 +40,7 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_601KT_WIN_4.5.0_A00_01.EXE"
+SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_DT6YC_WIN_4.6.0_A00.EXE"
 SET "$URI_PACKAGE=https://dl.dell.com/FOLDER08334704M/2/%$DCU_PACKAGE%"
 
 :: Local Network Repository
@@ -215,19 +215,37 @@ SET $CLEANUP=0
 	wget --version 1> nul 2> nul || GoTo err-wget
 	CD /D "%$LOG_D%\cache"
 	if exist dell-command-update.html del /F /Q dell-command-update.html
-	wget "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html"
-	for /f "tokens=5 delims=^< " %%P IN ('findstr /C:"New features in version" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
+	wget "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html" 
+	for /f "tokens=5 delims=^< " %%P IN ('findstr /R /C:"Dell Command | Update [0-9].[0-9]" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
 	SET /P $DCU_LATEST= < "%$LOG_D%\cache\DCU-Versions.txt"
 	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
 	echo %$DCU_LATEST% | FINDSTR /R /C:"[0-9].[0-9].[0-9]" 2>nul || SET "$DCU_LATEST=%$DCU_LATEST%.0"
-	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
+	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"	
+	
+	
+	:: Get DCU Latest Webpage
+	:: Find strings, first one will be the latest
+	if exist "%$LOG_D%\cache\DCU_Webpages.txt" del /F /Q "%$LOG_D%\cache\DCU_Webpages.txt"
+	findstr /C:"https://www.dell.com/support/home/drivers/DriversDetails?driverId=" "dell-command-update.html">"%$LOG_D%\cache\DCU_Webpages.txt"
+	if exist "%$LOG_D%\cache\DCU_Webpages_URI.txt" del /F /Q "%$LOG_D%\cache\DCU_Webpages_URI.txt"
+	for /f "tokens=3-4 delims== " %%P IN (%$LOG_D%\cache\DCU_Webpages.txt) DO echo %%P=%%Q>> "%$LOG_D%\cache\DCU_Webpage_URI.txt"
+	:: first string is the latest
+	SET /P $DCU_Webpage_URI= < "%$LOG_D%\cache\DCU_Webpage_URI.txt"
+	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_Webpage_URI: {%$DCU_Webpage_URI%} >> "%$LOG_D%\%$LOG_FILE%"	
+
+::	Get DCU package URI, can't be hard coded
+	if exist DCU_Webpage_Package_URI.html del /F /Q DCU_Webpage_Package.html
+	wget %$DCU_Webpage_URI% --output-document=DCU_Webpage_Package.html
+	findstr /R /C:"<a href=.https://dl.dell.com/FOLDER" "DCU_Webpage_Package.html" > DCU_Webpage_Package_URI.html
+	REM Will include double quotes in string: "string"
+	for /f "tokens=3 delims== " %%P IN (DCU_Webpage_Package_URI.html) DO SET $DCU_PACKAGE_URI=%%P
+	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_PACKAGE_URI: {%$DCU_PACKAGE_URI%} >> "%$LOG_D%\%$LOG_FILE%"	
+:: Get DCU latest Package	
+	
 	CD /D %PUBLIC%\Downloads
-	SET $DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_PWD0M_WIN_%$DCU_LATEST%_A00.EXE
-	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_PACKAGE: {%$DCU_PACKAGE%} >> "%$LOG_D%\%$LOG_FILE%"
-	SET "$URI_PACKAGE=https://dl.dell.com/FOLDER07870027M/1/%$DCU_PACKAGE%"
-	echo %$ISO_DATE% %TIME% [DEBUG]	$URI_PACKAGE: {%$URI_PACKAGE%} >> "%$LOG_D%\%$LOG_FILE%"
-	wget "%$URI_PACKAGE%"
+	wget "%$DCU_PACKAGE_URI%"
 	echo %$ISO_DATE% %TIME% [INFO]	Dell Command Updated downloaded from Dell website. >> "%$LOG_D%\%$LOG_FILE%"
+	for /f "tokens=5 delims=/" %%P IN (%$DCU_PACKAGE_URI%) DO SET $DCU_PACKAGE=%%P
 	echo %$ISO_DATE% %TIME% [INFO]	Package: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%"
 	GoTo skip_DCU-Get
 
