@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.5.0
-SET $SCRIPT_BUILD=20221003 0945
+SET $SCRIPT_VERSION=1.6.0
+SET $SCRIPT_BUILD=20221212 0900
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,8 +40,8 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_DT6YC_WIN_4.6.0_A00.EXE"
-SET "$URI_PACKAGE=https://dl.dell.com/FOLDER08334704M/2/%$DCU_PACKAGE%"
+SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_CJ0G9_WIN_4.7.1_A00.EXE"
+SET "$URI_PACKAGE=https://dl.dell.com/FOLDER09268356M/1/%$DCU_PACKAGE%"
 
 :: Local Network Repository
 ::	\\Server\Share
@@ -215,7 +215,7 @@ SET $CLEANUP=0
 	wget --version 1> nul 2> nul || GoTo err-wget
 	CD /D "%$LOG_D%\cache"
 	if exist dell-command-update.html del /F /Q dell-command-update.html
-	wget "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html" 
+	wget --no-check-certificate "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html" 
 	for /f "tokens=5 delims=^< " %%P IN ('findstr /R /C:"Dell Command | Update [0-9].[0-9]" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
 	SET /P $DCU_LATEST= < "%$LOG_D%\cache\DCU-Versions.txt"
 	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
@@ -235,15 +235,24 @@ SET $CLEANUP=0
 
 ::	Get DCU package URI, can't be hard coded
 	if exist DCU_Webpage_Package_URI.html del /F /Q DCU_Webpage_Package.html
-	wget %$DCU_Webpage_URI% --output-document=DCU_Webpage_Package.html
-	findstr /R /C:"<a href=.https://dl.dell.com/FOLDER" "DCU_Webpage_Package.html" > DCU_Webpage_Package_URI.html
+	wget --no-check-certificate %$DCU_Webpage_URI% --output-document=DCU_Webpage_Package.html
+	findstr /R /C:"DellDndDD.FileDetails = JSON.parse" "DCU_Webpage_Package.html" > DCU_Webpage_Package_URI.html
+	REM	This will likely break at some point since tokens 8 is looking for "h", so any change in the working on the web page will break this. 
+	for /f "tokens=8 delims=h" %%P IN (DCU_Webpage_Package_URI.html) DO echo h%%P> DCU_Webpage_Package_URI.txt"
+	REM This should have extracted the URI starting with ttps:\\ which is why the "h" has to be added for https://
+	REM More parsing of the string to get the exact URI
+	REM Note the change of the file from html to txt.
+	for /f "tokens=1 delims=^\" %%P IN (DCU_Webpage_Package_URI.txt) DO echo %%P> DCU_Webpage_Package_URI.txt
+	
+	REM No longer needed as current parsing created a clean URI
 	REM Will include double quotes in string: "string"
-	for /f "tokens=3 delims== " %%P IN (DCU_Webpage_Package_URI.html) DO SET $DCU_PACKAGE_URI=%%P
+	::	for /f "tokens=3 delims== " %%P IN (DCU_Webpage_Package_URI.txt) DO SET $DCU_PACKAGE_URI=%%P
+	SET /P $DCU_PACKAGE_URI= < DCU_Webpage_Package_URI.txt
 	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_PACKAGE_URI: {%$DCU_PACKAGE_URI%} >> "%$LOG_D%\%$LOG_FILE%"	
 :: Get DCU latest Package	
 	
 	CD /D %PUBLIC%\Downloads
-	wget "%$DCU_PACKAGE_URI%"
+	wget --no-check-certificate "%$DCU_PACKAGE_URI%"
 	echo %$ISO_DATE% %TIME% [INFO]	Dell Command Updated downloaded from Dell website. >> "%$LOG_D%\%$LOG_FILE%"
 	for /f "tokens=5 delims=/" %%P IN (%$DCU_PACKAGE_URI%) DO SET $DCU_PACKAGE=%%P
 	echo %$ISO_DATE% %TIME% [INFO]	Package: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%"
