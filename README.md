@@ -43,9 +43,9 @@ Use the following `PsExec` switch `SET "$SWITCH=-h -i -d -c -f -n 10"`
 
 ::	:new: **Latest URI**
 
-`SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_601KT_WIN_4.5.0_A00_01.EXE"`
+`SET "$DCU_PACKAGE=Dell-Command-Update-Application_714J9_WIN_4.8.0_A00.EXE"`
 
-:link: `SET "$URI_PACKAGE=https://dl.dell.com/FOLDER08334704M/2/%$DCU_PACKAGE%"`
+:link: `SET "$URI_PACKAGE=https://dl.dell.com/FOLDER09622916M/1/%$DCU_PACKAGE%"`
 
 :: **Local Network Repository**
 

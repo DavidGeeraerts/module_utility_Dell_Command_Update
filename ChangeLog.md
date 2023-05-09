@@ -19,6 +19,13 @@
 
 ---
 
+###  Version 1.6.1
+#### Changed
+- Dell latest package URI
+
+---
+
+
 ###  Version 1.6.0
 #### Added
 - WGET --no-check-certificate
@@ -29,8 +36,6 @@
 
 #### Fixed
 - parsing Dell webpages to get URI and latest package
-
----
 
 
 ###  Version 1.5.0

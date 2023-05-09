@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.6.0
-SET $SCRIPT_BUILD=20221212 0900
+SET $SCRIPT_VERSION=1.6.1
+SET $SCRIPT_BUILD=20230509 0800
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,8 +40,8 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_CJ0G9_WIN_4.7.1_A00.EXE"
-SET "$URI_PACKAGE=https://dl.dell.com/FOLDER09268356M/1/%$DCU_PACKAGE%"
+SET "$DCU_PACKAGE=Dell-Command-Update-Application_714J9_WIN_4.8.0_A00.EXE"
+SET "$URI_PACKAGE=https://dl.dell.com/FOLDER09622916M/1/%$DCU_PACKAGE%"
 
 :: Local Network Repository
 ::	\\Server\Share
