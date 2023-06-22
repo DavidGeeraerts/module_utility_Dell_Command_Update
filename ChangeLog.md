@@ -19,11 +19,16 @@
 
 ---
 
+###  Version 1.6.2
+#### Fixed
+- Downloading DCU package with WGET requires using 'user-agent' 
+
+---
+
+
 ###  Version 1.6.1
 #### Changed
 - Dell latest package URI
-
----
 
 
 ###  Version 1.6.0

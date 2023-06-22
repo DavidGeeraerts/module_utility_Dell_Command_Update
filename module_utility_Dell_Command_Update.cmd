@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.6.1
-SET $SCRIPT_BUILD=20230509 0800
+SET $SCRIPT_VERSION=1.6.2
+SET $SCRIPT_BUILD=20230622 1230
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,10 +40,9 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Application_714J9_WIN_4.8.0_A00.EXE"
-SET "$URI_PACKAGE=https://dl.dell.com/FOLDER09622916M/1/%$DCU_PACKAGE%"
+SET "$DCU_PACKAGE=Dell-Command-Update-Application_30F6M_WIN_4.9.0_A02_02.EXE"
+SET "$URI_PACKAGE=https://dl.dell.com/FOLDER10012380M/3/%$DCU_PACKAGE%"
 
-:: Local Network Repository
 ::	\\Server\Share
 SET $LOCAL_REPO=\\SC-Vanadium\Deploy\Dell\Dell_Command_Update
 :: Log settings
@@ -252,7 +251,8 @@ SET $CLEANUP=0
 :: Get DCU latest Package	
 	
 	CD /D %PUBLIC%\Downloads
-	wget --no-check-certificate "%$DCU_PACKAGE_URI%"
+	:: Get 403 forbidden without User-Agent
+	wget --no-check-certificate --user-agent=Mozilla "%$DCU_PACKAGE_URI%"
 	echo %$ISO_DATE% %TIME% [INFO]	Dell Command Updated downloaded from Dell website. >> "%$LOG_D%\%$LOG_FILE%"
 	for /f "tokens=5 delims=/" %%P IN (%$DCU_PACKAGE_URI%) DO SET $DCU_PACKAGE=%%P
 	echo %$ISO_DATE% %TIME% [INFO]	Package: %$DCU_PACKAGE% >> "%$LOG_D%\%$LOG_FILE%"
