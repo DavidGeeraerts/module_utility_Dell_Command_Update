@@ -19,11 +19,16 @@
 
 ---
 
+###  Version 1.6.3
+#### Fixed
+- checking if x32 or x64 is installed
+
+---
+
+
 ###  Version 1.6.2
 #### Fixed
 - Downloading DCU package with WGET requires using 'user-agent' 
-
----
 
 
 ###  Version 1.6.1

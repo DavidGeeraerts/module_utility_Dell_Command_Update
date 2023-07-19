@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.6.2
-SET $SCRIPT_BUILD=20230622 1230
+SET $SCRIPT_VERSION=1.6.3
+SET $SCRIPT_BUILD=20230719 1100
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -153,9 +153,12 @@ SET $CLEANUP=0
 	IF %$ADMIN_STATUS% NEQ 0 GoTo Close
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+::	Check if Dell Command Update installed
+::	either x32 or x64
 :check
-	IF NOT EXIST "%PROGRAMFILES%\Dell\CommandUpdate\dcu-cli.exe" GoTo DCU-Get
-	GoTo DCU-Start
+	IF EXIST "%PROGRAMFILES%\Dell\CommandUpdate\dcu-cli.exe" GoTo DCU-Start
+	IF EXIST "%ProgramFiles(x86)%\Dell\CommandUpdate\dcu-cli.exe" GoTo DCU-Start
+	GoTo DCU-Get
 
 :DCU-Get
 	REM Didn't seem to install correct version on x64
