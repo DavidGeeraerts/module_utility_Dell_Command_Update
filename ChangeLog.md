@@ -19,12 +19,17 @@
 
 ---
 
-###  Version 1.6.3
-#### Fixed
-- checking if x32 or x64 is installed
+###  Version 1.7.0
+#### Changed
+- Support x32 or x64
+- Latest package
 
 ---
 
+
+###  Version 1.6.3
+#### Fixed
+- checking if x32 or x64 is installed
 
 ###  Version 1.6.2
 #### Fixed

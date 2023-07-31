@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.6.3
-SET $SCRIPT_BUILD=20230719 1100
+SET $SCRIPT_VERSION=1.7.0
+SET $SCRIPT_BUILD=20230731 1230
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,7 +40,7 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Application_30F6M_WIN_4.9.0_A02_02.EXE"
+SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_J6PNP_WIN_4.9.0_A02_02.EXE"
 SET "$URI_PACKAGE=https://dl.dell.com/FOLDER10012380M/3/%$DCU_PACKAGE%"
 
 ::	\\Server\Share
@@ -282,8 +282,9 @@ SET $CLEANUP=0
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :DCU-Start
-	cd /D "%PROGRAMFILES%\Dell\CommandUpdate"
-
+	IF EXIST "%PROGRAMFILES%\Dell\CommandUpdate\dcu-cli.exe" cd /D "%PROGRAMFILES%\Dell\CommandUpdate"
+	IF EXIST "%ProgramFiles(x86)%\Dell\CommandUpdate\dcu-cli.exe" cd /D "%ProgramFiles(x86)%\Dell\CommandUpdate"
+	
 :DCU-Version
 	dcu-cli.exe /version > "%$LOG_D%\cache\DCU_Version.txt"
 	FIND /I "application is designed to only operate on supported Dell systems" "%$LOG_D%\cache\DCU_Version.txt" 1> nul 2> nul && (
