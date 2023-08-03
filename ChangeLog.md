@@ -19,13 +19,21 @@
 
 ---
 
+###  Version 1.7.1
+#### Fixed
+- parsing package URI string
+
+#### Changed
+- lastest package
+- last known URI string
+
+---
+
+
 ###  Version 1.7.0
 #### Changed
 - Support x32 or x64
 - Latest package
-
----
-
 
 ###  Version 1.6.3
 #### Fixed

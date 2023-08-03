@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.7.0
-SET $SCRIPT_BUILD=20230731 1230
+SET $SCRIPT_VERSION=1.7.1
+SET $SCRIPT_BUILD=20230803 0930
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,8 +40,8 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_J6PNP_WIN_4.9.0_A02_02.EXE"
-SET "$URI_PACKAGE=https://dl.dell.com/FOLDER10012380M/3/%$DCU_PACKAGE%"
+SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_1WR6C_WIN_5.0.0_A00.EXE"
+SET "$URI_PACKAGE=https://dl.dell.com/FOLDER10408436M/1/%$DCU_PACKAGE%"
 
 ::	\\Server\Share
 SET $LOCAL_REPO=\\SC-Vanadium\Deploy\Dell\Dell_Command_Update
@@ -228,7 +228,8 @@ SET $CLEANUP=0
 	:: Get DCU Latest Webpage
 	:: Find strings, first one will be the latest
 	if exist "%$LOG_D%\cache\DCU_Webpages.txt" del /F /Q "%$LOG_D%\cache\DCU_Webpages.txt"
-	findstr /C:"https://www.dell.com/support/home/drivers/DriversDetails?driverId=" "dell-command-update.html">"%$LOG_D%\cache\DCU_Webpages.txt"
+	:: URI search string seems to change
+	findstr /C:"https://www.dell.com/support/home/en-us/drivers/DriversDetails?driverId=" "dell-command-update.html"> "%$LOG_D%\cache\DCU_Webpages.txt"
 	if exist "%$LOG_D%\cache\DCU_Webpages_URI.txt" del /F /Q "%$LOG_D%\cache\DCU_Webpages_URI.txt"
 	for /f "tokens=3-4 delims== " %%P IN (%$LOG_D%\cache\DCU_Webpages.txt) DO echo %%P=%%Q>> "%$LOG_D%\cache\DCU_Webpage_URI.txt"
 	:: first string is the latest
