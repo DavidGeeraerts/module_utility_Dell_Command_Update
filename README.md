@@ -41,11 +41,11 @@ Use the following `PsExec` switch `SET "$SWITCH=-h -i -d -c -f -n 10"`
 - :satellite: If there's a log server on the network, configure: `$LOG_SHIPPING` e.g. `SET "$LOG_SHIPPING=\\Server\Share"`
 
 
-::	:new: **Latest URI**
+:new: **Latest URI**
 
 `SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_1WR6C_WIN_5.0.0_A00.EXE"`
 
-:link: `SET "$URI_PACKAGE=https://dl.dell.com/FOLDER10408436M/1//%$DCU_PACKAGE%"`
+:link: `SET "$URI_PACKAGE=https://dl.dell.com/FOLDER10408436M/1/%$DCU_PACKAGE%"`
 
 :: **Local Network Repository**
 
@@ -79,6 +79,6 @@ Use the following `PsExec` switch `SET "$SWITCH=-h -i -d -c -f -n 10"`
 - :white_check_mark: ChangeLog
 - :black_square_button: Provide configuration for scheduled task
 
-### :notebook: [Change Log](./ChangeLog.md)
+### :notebook: [Change Log](ChangeLog.md)
 
 

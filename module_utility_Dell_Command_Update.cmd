@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.7.1
-SET $SCRIPT_BUILD=20230803 0930
+SET $SCRIPT_VERSION=1.8.0
+SET $SCRIPT_BUILD=20240221 0715
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,8 +40,8 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_1WR6C_WIN_5.0.0_A00.EXE"
-SET "$URI_PACKAGE=https://dl.dell.com/FOLDER10408436M/1/%$DCU_PACKAGE%"
+SET "$DCU_PACKAGE=Dell-Command-Update-Application_4R78G_WIN_5.2.0_A00.EXE"
+SET "$URI_PACKAGE=https://dl.dell.com/FOLDER11201514M/1/%$DCU_PACKAGE%"
 
 ::	\\Server\Share
 SET $LOCAL_REPO=\\SC-Vanadium\Deploy\Dell\Dell_Command_Update
@@ -347,7 +347,7 @@ SET $CLEANUP=0
 	IF EXIST %PUBLIC%\Downloads\%$DCU_PACKAGE% DEL /F /Q %PUBLIC%\Downloads\%$DCU_PACKAGE%
 	IF EXIST "%$LOG_D%\cache" RD /S /Q "%$LOG_D%\cache"
 :skipCleanup
-
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :End
 	echo.
@@ -355,3 +355,4 @@ SET $CLEANUP=0
 	TIMEOUT 15
 	ENDLOCAL
 	Exit /B
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

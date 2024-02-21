@@ -19,6 +19,15 @@
 
 ---
 
+###  Version 1.8.0
+
+#### Changed
+- lastest package 5.2.0
+- last known URI string
+
+---
+
+
 ###  Version 1.7.1
 #### Fixed
 - parsing package URI string
@@ -26,8 +35,6 @@
 #### Changed
 - lastest package
 - last known URI string
-
----
 
 
 ###  Version 1.7.0
