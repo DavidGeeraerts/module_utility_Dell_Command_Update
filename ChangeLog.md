@@ -19,13 +19,27 @@
 
 ---
 
+###  Version 1.9.0
+#### Changed
+- lastest package 5.4.0
+- last known URI string
+- Ordered local below everything else
+- names for some variable files
+
+#### Added
+- WINGET installation attempt for DCU
+- Comments
+
+#### Fixed
+- Parsing to get package latest version and URI
+
+---
+
 ###  Version 1.8.0
 
 #### Changed
 - lastest package 5.2.0
 - last known URI string
-
----
 
 
 ###  Version 1.7.1

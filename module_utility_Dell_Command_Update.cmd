@@ -25,8 +25,8 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.8.0
-SET $SCRIPT_BUILD=20240221 0715
+SET $SCRIPT_VERSION=1.9.0
+SET $SCRIPT_BUILD=20240809 0915
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
 mode con:lines=44
@@ -40,8 +40,10 @@ color 03
 ::###########################################################################::
 
 ::	Last known package URI
-SET "$DCU_PACKAGE=Dell-Command-Update-Application_4R78G_WIN_5.2.0_A00.EXE"
-SET "$URI_PACKAGE=https://dl.dell.com/FOLDER11201514M/1/%$DCU_PACKAGE%"
+SET "$DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_9M35M_WIN_5.4.0_A00.EXE"
+REM The FOLDER number is what keeps changing along with the package
+SET "$URI_PACKAGE=https://dl.dell.com/FOLDER11914128M/1/%$DCU_PACKAGE%"
+
 
 ::	\\Server\Share
 SET $LOCAL_REPO=\\SC-Vanadium\Deploy\Dell\Dell_Command_Update
@@ -166,23 +168,16 @@ SET $CLEANUP=0
 	@powershell Write-Host  "Dell Command Update not installed!" -ForegroundColor Yellow
 	echo %$ISO_DATE% %TIME% [INFO]	Dell Command Update not installed! >> "%$LOG_D%\%$LOG_FILE%"
 	timeout 5
-	
-	CD /D %PUBLIC%\Downloads
-	IF EXIST "%$DCU_PACKAGE%" GoTo DCU-install
 
-:Local
-	whoami /UPN 2> nul || GoTo skipLocal
-	:: Check local repository if configured
-	IF DEFINED $LOCAL_REPO (
-		IF EXIST %$LOCAL_REPO% dir /B /A:-D /O:-D "%$LOCAL_REPO%"> "%$LOG_D%\cache\local_DCU_package.txt"
-		REM if the directory is empty dir will pass the file output name.
-		FIND /I "local_DCU_package.txt" "%$LOG_D%\cache\local_DCU_package.txt" 1> nul 2> nul && GoTo skipLocal
-		SET /P $DCU_PACKAGE= < "%$LOG_D%\cache\local_DCU_package.txt"
-		@powershell Write-Host "Fetching from local repository..." -ForegroundColor White
-		ROBOCOPY "%$LOCAL_REPO%" "%PUBLIC%\Downloads" %$DCU_PACKAGE% /R:1 /W:5
-		)
-	IF EXIST "%$DCU_PACKAGE%" GoTo DCU-install
-:skipLocal
+:: WINGET DCU Install		
+	REM Now trying WINGET first to install DCU
+	winget search --id "Dell.CommandUpdate.Universal" --accept-source-agreements > "%$LOG_D%\cache\v_winget_DCU.txt"
+	Winget install --id "Dell.CommandUpdate.Universal" --accept-source-agreements > "%$LOG_D%\cache\winget.log"
+	IF EXIST "%ProgramFiles(x86)%\Dell\CommandUpdate" "%ProgramFiles(x86)%\Dell\CommandUpdate\dcu-cli.exe" /version 2> nul && GoTo DCU-Start
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+REM This next section is all about a fallback method if WINGET fails to install.
+	
 	:: WGET returns 9009 for all ERRORLEVELS ;-(
 	IF EXIST "%ProgramFiles(x86)%\GnuWin32\bin" echo %PATH% | FIND /I "%ProgramFiles(x86)%\GnuWin32\bin" 1> nul 2> nul || set "PATH=%PATH%;%ProgramFiles(x86)%\GnuWin32\bin"
 	wget --version 1> "%$LOG_D%\cache\wget_version.txt" 2> nul || @powershell Write-Host "Wget is required to retrieve Dell Command Update package. Wget installation using Chocolatey package manager..." -ForegroundColor Yellow
@@ -217,28 +212,31 @@ SET $CLEANUP=0
 	wget --version 1> nul 2> nul || GoTo err-wget
 	CD /D "%$LOG_D%\cache"
 	if exist dell-command-update.html del /F /Q dell-command-update.html
+	REM DCU URI valid check: 2024-08-09
 	wget --no-check-certificate "https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update.html" 
-	for /f "tokens=5 delims=^< " %%P IN ('findstr /R /C:"Dell Command | Update [0-9].[0-9]" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
+	for /f "tokens=9 delims=^< " %%P IN ('findstr /R /C:"Latest Release - Dell Command | Update [0-9].[0-9].[0-9]" "%$LOG_D%\cache\dell-command-update.html"') DO ECHO %%P>> "%$LOG_D%\cache\DCU-Versions.txt"
 	SET /P $DCU_LATEST= < "%$LOG_D%\cache\DCU-Versions.txt"
 	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
-	echo %$DCU_LATEST% | FINDSTR /R /C:"[0-9].[0-9].[0-9]" 2>nul || SET "$DCU_LATEST=%$DCU_LATEST%.0"
-	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"	
+	REM Already parsed
+::	echo %$DCU_LATEST% | FINDSTR /R /C:"[0-9].[0-9].[0-9]" 2>nul || SET "$DCU_LATEST=%$DCU_LATEST%"
+::	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_LATEST: {%$DCU_LATEST%} >> "%$LOG_D%\%$LOG_FILE%"
 	
-	
-	:: Get DCU Latest Webpage
+	:: Get DCU Latest Package Webpage
 	:: Find strings, first one will be the latest
-	if exist "%$LOG_D%\cache\DCU_Webpages.txt" del /F /Q "%$LOG_D%\cache\DCU_Webpages.txt"
 	:: URI search string seems to change
-	findstr /C:"https://www.dell.com/support/home/en-us/drivers/DriversDetails?driverId=" "dell-command-update.html"> "%$LOG_D%\cache\DCU_Webpages.txt"
-	if exist "%$LOG_D%\cache\DCU_Webpages_URI.txt" del /F /Q "%$LOG_D%\cache\DCU_Webpages_URI.txt"
-	for /f "tokens=3-4 delims== " %%P IN (%$LOG_D%\cache\DCU_Webpages.txt) DO echo %%P=%%Q>> "%$LOG_D%\cache\DCU_Webpage_URI.txt"
-	:: first string is the latest
-	SET /P $DCU_Webpage_URI= < "%$LOG_D%\cache\DCU_Webpage_URI.txt"
-	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_Webpage_URI: {%$DCU_Webpage_URI%} >> "%$LOG_D%\%$LOG_FILE%"	
+	if exist "%$LOG_D%\cache\DCU_Driver-URIs.txt" del /F /Q "%$LOG_D%\cache\DCU_Driver-URIs.txt"
+	find /I "https://www.dell.com/support/home/en-us/drivers/DriversDetails?driverId=" "dell-command-update.html"> "%$LOG_D%\cache\DCU_Driver-URIs.txt"
+	:: Sample String in DCU_Driver-URI.txt
+	:: <li><a href="https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=9M35M" target="_blank">Dell Command | Update Windows Universal Application</a></li>
+	:: Parse string to get just the URI, e.g. "https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=9M35M"
+	for /f "tokens=3-4 delims== " %%P IN (%$LOG_D%\cache\DCU_Driver-URIs.txt) DO echo %%P=%%Q>> "%$LOG_D%\cache\DCU_Driver-URI.txt"
+	:: first URI string is the latest DCU Universal package
+	SET /P $DCU_Driver-URI= < "%$LOG_D%\cache\DCU_Driver-URI.txt"
+	echo %$ISO_DATE% %TIME% [DEBUG]	$DCU_Driver-URI: {%$DCU_Driver-URI%} >> "%$LOG_D%\%$LOG_FILE%"	
 
 ::	Get DCU package URI, can't be hard coded
 	if exist DCU_Webpage_Package_URI.html del /F /Q DCU_Webpage_Package.html
-	wget --no-check-certificate %$DCU_Webpage_URI% --output-document=DCU_Webpage_Package.html
+	wget --no-check-certificate %$DCU_Driver-URI% --output-document=DCU_Webpage_Package.html
 	findstr /R /C:"DellDndDD.FileDetails = JSON.parse" "DCU_Webpage_Package.html" > DCU_Webpage_Package_URI.html
 	REM	This will likely break at some point since tokens 8 is looking for "h", so any change in the working on the web page will break this. 
 	for /f "tokens=8 delims=h" %%P IN (DCU_Webpage_Package_URI.html) DO echo h%%P> DCU_Webpage_Package_URI.txt"
@@ -270,6 +268,24 @@ SET $CLEANUP=0
 	timeout 10
 	GoTo Close
 :skip_DCU-Get		
+
+
+:Local
+	whoami /UPN 2> nul || GoTo skipLocal
+	CD /D %PUBLIC%\Downloads
+	IF EXIST "%$DCU_PACKAGE%" GoTo DCU-install
+	
+	:: Check local repository if configured
+	IF DEFINED $LOCAL_REPO (
+		IF EXIST %$LOCAL_REPO% dir /B /A:-D /O:-D "%$LOCAL_REPO%"> "%$LOG_D%\cache\local_DCU_package.txt"
+		REM if the directory is empty dir will pass the file output name.
+		FIND /I "local_DCU_package.txt" "%$LOG_D%\cache\local_DCU_package.txt" 1> nul 2> nul && GoTo skipLocal
+		SET /P $DCU_PACKAGE= < "%$LOG_D%\cache\local_DCU_package.txt"
+		@powershell Write-Host "Fetching from local repository..." -ForegroundColor White
+		ROBOCOPY "%$LOCAL_REPO%" "%PUBLIC%\Downloads" %$DCU_PACKAGE% /R:1 /W:5
+		)
+	IF EXIST "%$DCU_PACKAGE%" GoTo DCU-install
+:skipLocal
 
 :DCU-install
 	CD /D %PUBLIC%\Downloads
