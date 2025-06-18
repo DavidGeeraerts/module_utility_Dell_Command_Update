@@ -19,6 +19,23 @@
 
 ---
 
+###  Version 1.10.0
+#### Added
+- chocolatey package manager for fallback to get wget
+  
+#### Changed
+- DCU package name for quick local fetching 
+- Log shipping server
+- Dell manufacturer check
+
+#### Removed
+- WMIC code
+- WINGET code; doesn't work.
+- Dell model; can get that from DCU log
+
+---
+
+
 ###  Version 1.9.0
 #### Changed
 - lastest package 5.4.0
@@ -32,8 +49,6 @@
 
 #### Fixed
 - Parsing to get package latest version and URI
-
----
 
 ###  Version 1.8.0
 
