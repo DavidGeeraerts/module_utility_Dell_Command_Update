@@ -25,7 +25,7 @@
 SETLOCAL Enableextensions
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 SET $SCRIPT_NAME=module_utility_Dell_Command_Update
-SET $SCRIPT_VERSION=1.10.0
+SET $SCRIPT_VERSION=1.11.0
 SET $SCRIPT_BUILD=20250618 0745
 Title %$SCRIPT_NAME% Version: %$SCRIPT_VERSION%
 mode con:cols=100
@@ -41,7 +41,13 @@ color 03
 
 ::	Last known package URI
 :: Acts as a cache for the package URI to speed up the process
-SET $DCU_PACKAGE=Dell-Command-Update-Windows-Universal-Application_P4DJW_WIN64_5.5.0_A00.EXE
+SET $DCU_PACKAGE=Dell-Command-Update-Application_Y5VJV_WIN64_5.5.0_A00.EXE
+
+:: Microsoft .NET Windows Desktop Runtime Dependency
+:: Required DesktopRuntime package
+SET $NET_PACKAGE=Microsoft.DotNet.DesktopRuntime.8
+
+
 :: [LAN] Local Repository
 ::	\\Server\Share
 SET $LOCAL_REPO=\\SC-Tellus\Software\Dell\Dell_Command_Update
@@ -166,6 +172,24 @@ SET $CLEANUP=0
 	@powershell Write-Host  "Dell Command Update not installed!" -ForegroundColor Yellow
 	echo %$ISO_DATE% %TIME% [INFO]	Dell Command Update not installed! >> "%$LOG_D%\%$LOG_FILE%"
 	timeout 2
+
+:DependNET
+:: Dependency check
+:: As of Dell-Command-Update-Application_Y5VJV_WIN64_5.5.0_A00 it requires Microsoft .NET Windows Desktop Runtime 8
+:: https://dotnet.microsoft.com/en-us/download/dotnet/8.0
+:: Microsoft.DotNet.DesktopRuntime.8
+
+ECHO %$ISO_DATE% %TIME% [TRACE]	ENTER: Microsoft .NET SDK... >> "%$LOG_D%\%$LOG_FILE%"
+ECHO Working on Microsoft dot NET Windows Desktop Runtime Dependency...
+SET $INSTALL_DOTNET=0
+winget list --accept-source-agreements %$NET_PACKAGE%
+SET $DOTNET_ERROR=%ERRORLEVEL%
+IF %$DOTNET_ERROR% NEQ 0 SET $INSTALL_DOTNET=1
+ECHO %$ISO_DATE% %TIME% [DEBUG]	VARIABLE: $INSTALL_DOTNET: %$INSTALL_DOTNET% >> "%$LOG_D%\%$LOG_FILE%"
+IF %$INSTALL_DOTNET% EQU 0 GoTo skipDependNET
+winget install --accept-source-agreements %$NET_PACKAGE%
+winget show %$NET_PACKAGE% >> "%$LOG_D%\cache\Microsoft.DotNet.DesktopRuntime.txt"
+:skipDependNET
 
 :Local
 	:: Network file share domain user check

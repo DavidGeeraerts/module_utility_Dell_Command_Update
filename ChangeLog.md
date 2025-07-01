@@ -19,6 +19,15 @@
 
 ---
 
+###  Version 1.11.0
+#### Added
+- MS .NET Desktop Runtime dependency
+
+#### Changed
+- DCU latest package
+
+---
+
 ###  Version 1.10.0
 #### Added
 - chocolatey package manager for fallback to get wget
@@ -32,9 +41,6 @@
 - WMIC code
 - WINGET code; doesn't work.
 - Dell model; can get that from DCU log
-
----
-
 
 ###  Version 1.9.0
 #### Changed
